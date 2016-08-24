@@ -81,7 +81,7 @@ if($_POST)
 						resize($mpc_source, $config['image'], $large_path, $config['quality'], $type, $config['large_width'], 0, $config['blur'], $config['best_fit'], $filters);
 
 						# meta
-						w_meta_file($meta_file, $meta_path, $filter, $config['quality'], $config['blur']);
+						w_meta_file($config['meta_file'], $meta_path, $filter, $config['quality'], $config['blur']);
 					}
 				}
 					move_uploaded_file($ftname, $source_image);
@@ -142,7 +142,7 @@ if(file_exists($mpc_source) && array_key_exists('resize_type', $_GET)) {
 	resize($mpc_source, $config['image'], $large_path, $config['quality'], $type, $config['large_width'], $config['height'], $config['blur'], $config['best_fit'], $filters);
 
 	# meta
-	w_meta_file($meta_file, $meta_path, $filter_name, $config['quality'], $config['blur']);
+	w_meta_file($config['meta_file'], $meta_path, $filter_name, $config['quality'], $config['blur']);
 
 	header('Location: '.$config['url_base'].'?quality='.$config['quality'].'&blur='.$config['blur'].'#filter_'.$filter_name);
 	exit;
