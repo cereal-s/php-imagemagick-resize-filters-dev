@@ -14,8 +14,8 @@ $paths   = require './support/paths.php';
 
 list($source, $thumb_path, $large_path, $meta_path, $mpc_path) = paths($paths);
 
-$source_image = $source . $image;
-$mpc_source   = $mpc_path . $mpc_file;
+$source_image = $source . $config['image'];
+$mpc_source   = $mpc_path . $config['mpc_file'];
 
 # config
 $page_title = 'Testing ImageMagick resize filters';
@@ -25,23 +25,23 @@ $li = [];
 foreach($filters as $filter)
 {
 	$fname = 'filter_'.$filter;
-	$image_file = get_file_by_filter($filter, $thumb_path, $image);
+	$image_file = get_file_by_filter($filter, $thumb_path, $config['image']);
 
 	if(file_exists($image_file))
 	{
 		list($w, $h) = getimagesize($image_file);
 
 		# meta
-		$meta_file_path = get_file_by_filter($filter, $meta_path, $meta_file);
+		$meta_file_path = get_file_by_filter($filter, $meta_path, $config['meta_file']);
 		$metaf = file_exists($meta_file_path) ? explode(',', file_get_contents($meta_file_path)) : FALSE;
 
 		if($metaf === FALSE)
 		{
-			$metaf[] = (int)$quality;
-			$metaf[] = (float)$blur;
+			$metaf[] = (int)$config['quality'];
+			$metaf[] = (float)$config['blur'];
 		}
 
-		$li[$filter] = sprintf($thumb_template, $fname, $filter, $quality, $blur, $image_file, format_bytes(filesize($image_file)), $w, $h, $metaf[0], $metaf[1], strtoupper($filter));
+		$li[$filter] = sprintf($thumb_template, $fname, $filter, $config['quality'], $config['blur'], $image_file, format_bytes(filesize($image_file)), $w, $h, $metaf[0], $metaf[1], strtoupper($filter));
 	}
 
 	else
@@ -75,13 +75,13 @@ if($_POST)
 						$type = 'FILTER_'.strtoupper($filter);
 
 						# thumbs
-						resize($mpc_source, $image, $thumb_path, $quality, $type, $thumb_width, 0, $blur, $best_fit, $filters);
+						resize($mpc_source, $config['image'], $thumb_path, $config['quality'], $type, $config['thumb_width'], 0, $config['blur'], $config['best_fit'], $filters);
 
 						# large
-						resize($mpc_source, $image, $large_path, $quality, $type, $large_width, 0, $blur, $best_fit, $filters);
+						resize($mpc_source, $config['image'], $large_path, $config['quality'], $type, $config['large_width'], 0, $config['blur'], $config['best_fit'], $filters);
 
 						# meta
-						w_meta_file($meta_file, $meta_path, $filter, $quality, $blur);
+						w_meta_file($meta_file, $meta_path, $filter, $config['quality'], $config['blur']);
 					}
 				}
 					move_uploaded_file($ftname, $source_image);
@@ -91,7 +91,7 @@ if($_POST)
 				error_log('Error: ' . $_FILES['userfile']['error'] . PHP_EOL, './error.log');
 		}
 
-		header('Location: ./'.$redirect);
+		header('Location: '.$config['url_base']);
 		exit;
 	}
 }
@@ -117,7 +117,7 @@ if(file_exists($source_image))
 		$files = glob($mpc_path . '*.*');
 		array_map('rm', $files);
 
-		header('Location: ./'.$redirect);
+		header('Location: '.$config['url_base']);
 		exit;
 	}
 }
@@ -130,21 +130,21 @@ if(file_exists($mpc_source) && array_key_exists('resize_type', $_GET)) {
 	$type = filter_input(INPUT_GET, 'resize_type', FILTER_SANITIZE_STRING);
 
 	# thumb
-	$filter_name = resize($mpc_source, $image, $thumb_path, $quality, $type, $thumb_width, 0, $blur, $best_fit, $filters);
+	$filter_name = resize($mpc_source, $config['image'], $thumb_path, $config['quality'], $type, $config['thumb_width'], $config['height'], $config['blur'], $config['best_fit'], $filters);
 
 	if($filter_name === FALSE)
 	{
-		header('Location: ./'.$redirect.'?quality='.$quality.'&blur='.$blur);
+		header('Location: '.$config['url_base'].'?quality='.$config['quality'].'&blur='.$config['blur']);
 		exit;
 	}
 
 	# large
-	resize($mpc_source, $image, $large_path, $quality, $type, $large_width, 0, $blur, $best_fit, $filters);
+	resize($mpc_source, $config['image'], $large_path, $config['quality'], $type, $config['large_width'], $config['height'], $config['blur'], $config['best_fit'], $filters);
 
 	# meta
-	w_meta_file($meta_file, $meta_path, $filter_name, $quality, $blur);
+	w_meta_file($meta_file, $meta_path, $filter_name, $config['quality'], $config['blur']);
 
-	header('Location: ./'.$redirect.'?quality='.$quality.'&blur='.$blur.'#filter_'.$filter_name);
+	header('Location: '.$config['url_base'].'?quality='.$config['quality'].'&blur='.$config['blur'].'#filter_'.$filter_name);
 	exit;
 }
 ?><!DOCTYPE html>
@@ -183,12 +183,12 @@ if(file_exists($mpc_source) && array_key_exists('resize_type', $_GET)) {
 			<form method="get">
 				<p>
 					<label for="quality">Compression Quality (1-100), default: 100%</label>
-					<input type="number" step="1" min="1" max="100" name="quality" id="quality" value="<?php echo $quality; ?>">
+					<input type="number" step="1" min="1" max="100" name="quality" id="quality" value="<?php echo $config['quality']; ?>">
 				</p>
 
 				<p>
 					<label for="blur">Blur (sharp &lt; 1.0 &gt; blurry) default: 1.0</label>
-					<input type="number" step="0.1" min="0.0" max="3.0" name="blur" id="blur" value="<?php echo $blur; ?>">
+					<input type="number" step="0.1" min="0.0" max="3.0" name="blur" id="blur" value="<?php echo $config['blur']; ?>">
 				</p>
 
 				<p>

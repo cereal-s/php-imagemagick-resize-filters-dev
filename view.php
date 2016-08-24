@@ -9,25 +9,25 @@ require './support/config.php';
 require './support/templates.php';
 
 $paths   	= require './support/paths.php';
-$page_title = $filter_name . ' @ ' . $large_width . 'px';
-$fname 		= 'filter_'.$filter_name;
+$page_title = $config['filter_name'] . ' @ ' . $config['large_width'] . 'px';
+$fname 		= 'filter_'.$config['filter_name'];
 
 list($source, $thumb_path, $large_path, $meta_path, $mpc_path) = paths($paths);
 
-$image_file = get_file_by_filter($filter_name, $large_path, $image);
+$image_file = get_file_by_filter($config['filter_name'], $large_path, $config['image']);
 
 if(file_exists($image_file))
 {
 	list($w, $h) = getimagesize($image_file);
 
 	# meta
-	$meta_file_path = get_file_by_filter($filter_name, $meta_path, $meta_file);
+	$meta_file_path = get_file_by_filter($config['filter_name'], $meta_path, $config['meta_file']);
 	$metaf = file_exists($meta_file_path) ? explode(',', file_get_contents($meta_file_path)) : FALSE;
 
 	if($metaf === FALSE)
 	{
-		$metaf[] = (int)$quality;
-		$metaf[] = (float)$blur;
+		$metaf[] = (int)$config['quality'];
+		$metaf[] = (float)$config['blur'];
 	}
 
 	$content = sprintf($large_template, $fname, $image_file, format_bytes(filesize($image_file)), $w, $h, $metaf[0], $metaf[1]);
