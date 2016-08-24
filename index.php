@@ -20,36 +20,6 @@ $mpc_source   = $mpc_path . $config['mpc_file'];
 # config
 $page_title = 'Testing ImageMagick resize filters';
 
-$li = [];
-
-foreach($filters as $filter)
-{
-	$fname = 'filter_'.$filter;
-	$image_file = get_file_by_filter($filter, $thumb_path, $config['image']);
-
-	if(file_exists($image_file))
-	{
-		list($w, $h) = getimagesize($image_file);
-
-		# meta
-		$meta_file_path = get_file_by_filter($filter, $meta_path, $config['meta_file']);
-		$metaf = file_exists($meta_file_path) ? explode(',', file_get_contents($meta_file_path)) : FALSE;
-
-		if($metaf === FALSE)
-		{
-			$metaf[] = (int)$config['quality'];
-			$metaf[] = (float)$config['blur'];
-		}
-
-		$li[$filter] = sprintf($thumb_template, $fname, $filter, $config['quality'], $config['blur'], $image_file, format_bytes(filesize($image_file)), $w, $h, $metaf[0], $metaf[1], strtoupper($filter));
-	}
-
-	else
-		$li[$filter] = sprintf($input_template, $fname, strtoupper($filter));
-}
-
-sort($li);
-
 /**
  * Upload
  */
@@ -147,6 +117,40 @@ if(file_exists($mpc_source) && array_key_exists('resize_type', $_GET)) {
 	header('Location: '.$config['url_base'].'?quality='.$config['quality'].'&blur='.$config['blur'].'#filter_'.$filter_name);
 	exit;
 }
+
+if($_SERVER['REQUEST_METHOD'] == 'GET')
+{
+	$li = [];
+	
+	foreach($filters as $filter)
+	{
+		$fname = 'filter_'.$filter;
+		$image_file = get_file_by_filter($filter, $thumb_path, $config['image']);
+
+		if(file_exists($image_file))
+		{
+			list($w, $h) = getimagesize($image_file);
+
+			# meta
+			$meta_file_path = get_file_by_filter($filter, $meta_path, $config['meta_file']);
+			$metaf = file_exists($meta_file_path) ? explode(',', file_get_contents($meta_file_path)) : FALSE;
+
+			if($metaf === FALSE)
+			{
+				$metaf[] = (int)$config['quality'];
+				$metaf[] = (float)$config['blur'];
+			}
+
+			$li[$filter] = sprintf($thumb_template, $fname, $filter, $config['quality'], $config['blur'], $image_file, format_bytes(filesize($image_file)), $w, $h, $metaf[0], $metaf[1], strtoupper($filter));
+		}
+
+		else
+			$li[$filter] = sprintf($input_template, $fname, strtoupper($filter));
+	}
+
+	sort($li);
+}
+
 ?><!DOCTYPE html>
 <html>
 <head>
